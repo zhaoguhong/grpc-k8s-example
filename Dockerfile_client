@@ -1,0 +1,11 @@
+FROM golang:alpine AS builder
+WORKDIR /www/webapp
+COPY . /www/webapp
+RUN CGO_ENABLED=0 go build -o ./client/client ./client
+
+FROM alpine AS runner
+WORKDIR /www/webapp
+COPY --from=builder /www/webapp/client/client .
+EXPOSE 8000
+CMD ["./client"]
+
