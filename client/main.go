@@ -3,34 +3,33 @@ package main
 import (
 	"context"
 	"flag"
-	"go-client/pb"
+	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"grpc-k8s-example/pb"
 	"log"
 	"net/http"
 	"time"
 )
 
 var (
-	addr = flag.String("addr", "localhost:8001", "the address to connect ")
-	name = flag.String("name", "world", "Name to greet")
+	addr       = flag.String("addr", "localhost:8001", "the address to connect ")
+	name       = flag.String("name", "world", "Name to greet")
+	clientPort = flag.String("clientPort", ":8000", "client listen port")
 )
 
 func main() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte(client()))
 	})
-	http.ListenAndServe(":8000", nil)
-}
-
-func init() {
-
+	http.ListenAndServe(*clientPort, nil)
 }
 
 func client() string {
 	flag.Parse()
+	address := fmt.Sprintf("dns:///%s", *addr)
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
